@@ -6,9 +6,12 @@ ZIGROOT := /opt/zig-dev/zig-linux-x86_64-0.13.0-dev.386+3964b2a31/
 
 ZCC := $(ZIGROOT)zig cc
 ZBE := $(ZIGROOT)zig build-exe
+
 LOD := llvm-objdump
 LRE := llvm-readelf
 LOC := llvm-objcopy
+
+UF := /opt/ti/uniflash/dslite.sh
 
 TRGTF := -target armeb-freestanding -mcpu=cortex_r4f
 # TRGTF := -target arm-freestanding -mcpu=cortex_r4f
@@ -25,6 +28,8 @@ SRCZIG := main.zig \
           foo.zig
 LD_SCRIPT := ../misc/lt_link.ld
 
+MC_CFG := ../misc/TMS570LS1224.ccxml
+
 OBJ := $(addprefix $(OUTDIR)/, $(SRCASM:.s=.o))
 BINARY := $(OUTDIR)/foobar.elf
 
@@ -32,14 +37,19 @@ MKDIRS := $(OUTDIR) $(DISDIR)
 
 VPATH := $(SRCDIR)
 
-.PHONY: all clean
+.PHONY: all flash clean
 
 
 all: $(MKDIRS) $(BINARY)
 
 
+flash: $(MKDIRS) $(BINARY)
+	$(UF) -c $(MC_CFG) -e -v -r 0 -f $(BINARY)
+
+
 $(MKDIRS):
 	mkdir $@
+
 
 $(BINARY): $(SRCZIG) $(OBJ) $(LD_SCRIPT)
 	$(ZBE) $(ZBEF) --name $(notdir $@) --script $(LD_SCRIPT) \
