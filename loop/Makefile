@@ -25,7 +25,6 @@ OUTDIR := ./zig-bin
 
 SRCASM := sys_intvecs.s \
           sys_core.s
-SRCC   :=
 SRCZIG := main.zig \
           foo.zig
 LD_SCRIPT := ../misc/lt_link.ld
@@ -33,8 +32,6 @@ LD_SCRIPT := ../misc/lt_link.ld
 MC_CFG := ../misc/TMS570LS1224.ccxml
 
 OBJ := $(addprefix $(OUTDIR)/, $(SRCASM:.s=.o))
-OBJ := $(OBJ) \
-       $(addprefix $(OUTDIR)/, $(SRCC:.c=.o))
 BINARY := $(OUTDIR)/foobar.elf
 
 MKDIRS := $(OUTDIR) $(DISDIR)
@@ -65,11 +62,6 @@ $(BINARY): $(SRCZIG) $(OBJ) $(LD_SCRIPT)
 	$(LRE) -a $@ > $(DISDIR)/elf-summary.txt 2>&1
 	$(LOC) -O ihex $@ $(subst .elf,.hex, $@)
 	chmod -x $(subst .elf,.hex, $@)
-
-
-$(OUTDIR)/%.o: %.c
-	$(ZCC) $(ZCF) -c $< -o $@
-	$(LOD) -S $@ > $(DISDIR)/$(addsuffix .dis, $(notdir $<)) 2>&1
 
 
 $(OUTDIR)/%.o: %.s
