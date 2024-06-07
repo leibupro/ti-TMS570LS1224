@@ -5,11 +5,11 @@ const foo = @import( "foo.zig" );
 
 export fn _start() void
 {
-    @call( .auto, main, .{} );
+    @call( .auto, zig_main, .{} );
 }
 
 
-pub fn main() void
+pub fn zig_main() void
 {
     const bar: u8 = foo.bazqux();
     var baz: u8 = 0;

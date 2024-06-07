@@ -1,5 +1,5 @@
 
-.extern _start
+.extern _core_init_registers_
 
 .section .intvecs, "ax"
 
@@ -15,5 +15,5 @@
  * to the _start routine.
  * */
 reset_entry:
-    b    _start
+    b    _core_init_registers_
 

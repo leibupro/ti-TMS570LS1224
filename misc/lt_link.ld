@@ -12,6 +12,13 @@ MEMORY
 SECTIONS
 {
     .intvecs : {} > HORUS_APP_VECS
+
+    .early_init :
+    {
+        *(.early_init*)
+        . = ALIGN(4);
+    } > HORUS_APP
+
     .text :
     {
         *(.text)
