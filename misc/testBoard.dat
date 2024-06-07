@@ -1,0 +1,37 @@
+# config version=3.5
+$ sepk
+  pod_drvr=libjioxds110.so
+  pod_port=0
+  pod_supply=0
+  pod_voltage_selection=0
+  pod_voltage=0
+$ /
+$ product
+  title="Texas Instruments XDS110 USB"
+  alias=TI_XDS110_USB
+  name=XDS110
+$ /
+$ uscif
+  tdoedge=FALL
+  tclk_program=DEFAULT
+  tclk_frequency=5.5MHz
+  jtag_isolate=enable
+$ /
+$ dot7
+  dts_usage=nothing
+$ /
+$ swd
+  swd_debug=disabled
+  swo_data=aux_uart
+  swj_dp_default_mode=0
+  appy_pin_reset_dormant_wakeup=0
+$ /
+@ icepick family=icepick_c irbits=6 drbits=1 subpaths=2 systemresetsupported=1 systemresetwhileconnected=1
+  & port17 address=17 default=no custom=no force=yes pseudo=no cancelreset=0x0
+  & port16 address=16 default=no custom=no force=yes pseudo=no cancelreset=0x0
+    @ dap family=cs_dap irbits=4 drbits=1 subpaths=1 identify=0 revision=Legacy systemresetwhileconnected=1
+      & portr4 type=debug address=0 default=no custom=no force=no pseudo=no
+        @ cortexr4 family=cortex_rxx irbits=0 drbits=0 address=0x80001000 identify=0x02000100 traceid=0x0
+      & /
+  & /
+# /
