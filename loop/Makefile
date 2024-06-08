@@ -12,6 +12,7 @@ LRE := llvm-readelf
 LOC := llvm-objcopy
 
 UF := /opt/ti/uniflash/dslite.sh
+GDBSRVR := /opt/ti/ccs1271/ccs/ccs_base/common/uscif/gdb_agent_console
 
 TRGTF := -target armeb-freestanding -mcpu=cortex_r4f
 # TRGTF := -target arm-freestanding -mcpu=cortex_r4f
@@ -30,6 +31,7 @@ SRCZIG := main.zig \
 LD_SCRIPT := ../misc/lt_link.ld
 
 MC_CFG := ../misc/TMS570LS1224.ccxml
+GDBSRVR_CFG := $(realpath ../misc/testBoard.dat)
 
 OBJ := $(addprefix $(OUTDIR)/, $(SRCASM:.s=.o))
 BINARY := $(OUTDIR)/foobar.elf
@@ -38,7 +40,7 @@ MKDIRS := $(OUTDIR) $(DISDIR)
 
 VPATH := $(SRCDIR)
 
-.PHONY: all flash clean
+.PHONY: all flash launchgdb clean
 
 
 all: $(MKDIRS) $(BINARY)
@@ -46,6 +48,10 @@ all: $(MKDIRS) $(BINARY)
 
 flash: $(MKDIRS) $(BINARY)
 	$(UF) -c $(MC_CFG) -e -v -r 0 -f $(BINARY)
+
+
+launchgdb:
+	-$(GDBSRVR) $(GDBSRVR_CFG)
 
 
 $(MKDIRS):
