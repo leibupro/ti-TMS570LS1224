@@ -20,7 +20,8 @@ TRGTF := -target armeb-freestanding -mcpu=cortex_r4f
 ZCF := $(TRGTF) -g3 -O0 -Wno-unused-command-line-argument
 ZBEF := $(TRGTF) -O Debug
 
-SRCDIR := ./src
+SRCDIR := ./src \
+          ../src
 DISDIR := ./dis
 OUTDIR := ./zig-bin
 
