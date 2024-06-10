@@ -68,8 +68,7 @@ $(BINARY): $(SRCZIG) $(OBJ) $(LD_SCRIPT)
 	$(LRE) -a $@ > $(DISDIR)/elf-summary.txt 2>&1
 	$(LOC) -O ihex $@ $(subst .elf,.hex, $@)
 	$(LOC) -O binary $@ $(subst .elf,.bin, $@)
-	chmod -x $(subst .elf,.hex, $@)
-
+	chmod -x $@ $(subst .elf,.hex, $@) $(subst .elf,.bin, $@)
 
 $(OUTDIR)/%.o: %.s
 	$(ZCC) $(ZCF) -c $< -o $@
