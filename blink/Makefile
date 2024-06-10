@@ -20,16 +20,32 @@ TRGTF := -target armeb-freestanding -mcpu=cortex_r4f
 ZCF := $(TRGTF) -g3 -O0 -Wno-unused-command-line-argument
 ZBEF := $(TRGTF) -O Debug
 
-SRCDIR := ./src \
-          ../src
+SRCDIR := ./src
+
+AUX_SRCDIR := ../src
+
 DISDIR := ./dis
 OUTDIR := ./zig-bin
 
 SRCASM := sys_intvecs.s \
           sys_core.s
-SRCZIG := main.zig \
-          gio.zig \
-          system.zig
+
+SRCZIG := main.zig
+
+AUX_SRCZIG := gio.zig \
+              system.zig
+
+ZIG_ROOT_MODULE := $(SRCDIR)/$(word 1, $(SRCZIG))
+
+DEPS := $(addprefix --dep , $(AUX_SRCZIG))
+
+# Lazy evaluation intentional here ...
+AUX_MODULES_1 = $(addprefix -M, $(1))
+AUX_MODULES_2 = $(addprefix $(AUX_SRCDIR)/, $(1))
+pair = $(AUX_MODULES_1)=$(AUX_MODULES_2)
+
+AUX_MODULES := $(foreach x,$(AUX_SRCZIG),$(call pair,$(x)))
+
 LD_SCRIPT := ../misc/lt_link.ld
 
 MC_CFG := ../misc/TMS570LS1224.ccxml
@@ -40,7 +56,7 @@ BINARY := $(OUTDIR)/blink.elf
 
 MKDIRS := $(OUTDIR) $(DISDIR)
 
-VPATH := $(SRCDIR)
+VPATH := $(SRCDIR) $(AUX_SRCDIR)
 
 .PHONY: all flash launchgdb clean
 
@@ -60,9 +76,10 @@ $(MKDIRS):
 	mkdir $@
 
 
-$(BINARY): $(SRCZIG) $(OBJ) $(LD_SCRIPT)
+$(BINARY): $(SRCZIG) $(AUX_SRCZIG) $(OBJ) $(LD_SCRIPT)
 	$(ZBE) $(ZBEF) --name $(notdir $@) --script $(LD_SCRIPT) \
-           --verbose-link $< $(OBJ)
+           --verbose-link \
+           $(DEPS) -Mroot=$(ZIG_ROOT_MODULE) $(AUX_MODULES) $(OBJ)
 	mv $(notdir $@).o $(notdir $@) $(dir $@)
 	$(LOD) -S $(addsuffix .o, $@) > \
            $(DISDIR)/$(addsuffix .o.dis, $(notdir $@)) 2>&1
