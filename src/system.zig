@@ -124,6 +124,61 @@ const PcrBase = extern struct
 };
 
 
+const FlashWBase = extern struct
+{
+    FRDCNTL      : u32,       // 0x0000
+    rsvd1        : u32,       // 0x0004
+    FEDACCTRL1   : u32,       // 0x0008
+    FEDACCTRL2   : u32,       // 0x000C
+    FCORERRCNT   : u32,       // 0x0010
+    FCORERRADD   : u32,       // 0x0014
+    FCORERRPOS   : u32,       // 0x0018
+    FEDACSTATUS  : u32,       // 0x001C
+    FUNCERRADD   : u32,       // 0x0020
+    FEDACSDIS    : u32,       // 0x0024
+    FPRIMADDTAG  : u32,       // 0x0028
+    FREDUADDTAG  : u32,       // 0x002C
+    FBPROT       : u32,       // 0x0030
+    FBSE         : u32,       // 0x0034
+    FBBUSY       : u32,       // 0x0038
+    FBAC         : u32,       // 0x003C
+    FBFALLBACK   : u32,       // 0x0040
+    FBPRDY       : u32,       // 0x0044
+    FPAC1        : u32,       // 0x0048
+    FPAC2        : u32,       // 0x004C
+    FMAC         : u32,       // 0x0050
+    FMSTAT       : u32,       // 0x0054
+    FEMUDMSW     : u32,       // 0x0058
+    FEMUDLSW     : u32,       // 0x005C
+    FEMUECC      : u32,       // 0x0060
+    FLOCK        : u32,       // 0x0064
+    FEMUADDR     : u32,       // 0x0068
+    FDIAGCTRL    : u32,       // 0x006C
+    FRAWDATAH    : u32,       // 0x0070
+    FRAWDATAL    : u32,       // 0x0074
+    FRAWECC      : u32,       // 0x0078
+    FPAROVR      : u32,       // 0x007C
+    rsvd2        : [ 16 ]u32, // 0x009C
+    FEDACSDIS2   : u32,       // 0x00C0
+    rsvd3        : [ 15 ]u32, // 0x00C4
+    rsvd4        : [ 13 ]u32, // 0x0100
+    rsvd5        : [ 85 ]u32, // 0x0134
+    FSMWRENA     : u32,       // 0x0288
+    rsvd6        : [  6 ]u32, // 0x028C
+    FSMSECTOR    : u32,       // 0x02A4
+    rsvd7        : [  4 ]u32, // 0x02A8
+    EEPROMCONFIG : u32,       // 0x02B8
+    rsvd8        : [ 19 ]u32, // 0x02BC
+    EECTRL1      : u32,       // 0x0308
+    EECTRL2      : u32,       // 0x030C
+    EECORRERRCNT : u32,       // 0x0310
+    EECORRERRADD : u32,       // 0x0314
+    EECORRERRPOS : u32,       // 0x0318
+    EESTATUS     : u32,       // 0x031C
+    EEUNCERRADD  : u32,       // 0x0320
+};
+
+
 const SystemClockSource = enum( u32 )
 {
     SYS_OSC       = 0,  // oscillator clock Source
@@ -137,9 +192,21 @@ const SystemClockSource = enum( u32 )
 };
 
 
+const FlashWPowerModes = enum( u32 )
+{
+    SYS_SLEEP   = 0,  // flash bank power mode sleep
+    SYS_STANDBY = 1,  // flash bank power mode standby
+    SYS_ACTIVE  = 3,  // flash bank power mode active
+};
+
+
 const system_reg_1: *volatile SystemBase1 = @ptrFromInt( 0xFFFFFF00 );
 const system_reg_2: *volatile SystemBase2 = @ptrFromInt( 0xFFFFE100 );
 const pcr_reg: *volatile PcrBase = @ptrFromInt( 0xFFFFE000 );
+const flash_w_reg: *volatile FlashWBase = @ptrFromInt( 0xFFF87000 );
+
+const FSM_WR_ENA_HL: *volatile u32 = @ptrFromInt( 0xFFF87288 );
+const EEPROM_CONFIG_HL: *volatile u32 = @ptrFromInt( 0xFFF872B8 );
 
 
 pub fn init() void
@@ -147,14 +214,11 @@ pub fn init() void
     // efc_check omitted
     // mux_init omitted,
     //     -> GIOB 1 and GIOB 2 should be directly accessible.
-    // setup_flash omitted
-    // map_clocks omitted
-    //     -> Currently just interested in writing to the GIOB port,
-    //        no other clock dependent peripherals.
     erratum_cortexr4_57();
     erratum_cortexr4_66();
     setup_pll();
     init_peripherals();
+    setup_flash();
     trim_lpo();
     map_clocks();
 }
@@ -325,6 +389,39 @@ fn trim_lpo() void
 }
 
 
+fn setup_flash() void
+{
+    //
+    // Setup flash read mode, address wait states
+    // and data wait states.
+    //
+    flash_w_reg.*.FRDCNTL = (   0x00000000
+                              | ( 3 << 8 )
+                              | ( 1 << 4 )
+                              | 1 );
+
+    //
+    // Setup flash access wait states for bank 7.
+    //
+    FSM_WR_ENA_HL.* = 0x5;
+    EEPROM_CONFIG_HL.* = ( 0x00000002 | ( 3 << 16 ) );
+
+    //
+    // Disable write access to flash state machine registers.
+    //
+    FSM_WR_ENA_HL.* = 0xA;
+
+    //
+    // Setup flash bank power modes.
+    //
+    flash_w_reg.*.FBFALLBACK =
+        (   0x00000000
+          | ( @intFromEnum( FlashWPowerModes.SYS_ACTIVE ) << 14 )    // BANK 7
+          | ( @intFromEnum( FlashWPowerModes.SYS_ACTIVE ) <<  2 )    // BANK 1
+          | ( @intFromEnum( FlashWPowerModes.SYS_ACTIVE ) <<  0 ) ); // BANK 0
+}
+
+
 fn map_clocks() void
 {
     var sys_csvstat: u32 = 0;
@@ -423,24 +520,17 @@ fn map_clocks() void
     // The R-divider was programmed to be 0xF. Now this divider is
     // changed to programmed value.
     //
-    //system_reg_1.*.PLLCTL1 =
-    //    (   ( system_reg_1.*.PLLCTL1 & 0xE0FFFFFF )
-    //      | ( ( 1 - 1 ) << 24 ) );
-    //system_reg_2.*.PLLCTL3 =
-    //    (   ( system_reg_2.*.PLLCTL3 & 0xE0FFFFFF )
-    //      | ( ( 1 - 1 ) << 24 ) );
-    // system_reg_1.*.PLLCTL1 &= 0xE0FFFFFF;
     system_reg_1.*.PLLCTL1 =
         (   ( system_reg_1.*.PLLCTL1 & 0xE0FFFFFF )
-          | ( 0 << 24 ) );
-    system_reg_2.*.PLLCTL3 &= 0xE0FFFFFF;
+          | ( ( 1 - 1 ) << 24 ) );
+    system_reg_2.*.PLLCTL3 =
+        (   ( system_reg_2.*.PLLCTL3 & 0xE0FFFFFF )
+          | ( ( 1 - 1 ) << 24 ) );
 
     //
     // Enable/Disable Frequency modulation.
     //
-    // Line has currently no effect. Commenting it out.
-    //
-    // system_reg_1.*.PLLCTL2 |= 0x00000000;
+    system_reg_1.*.PLLCTL2 |= 0x00000000;
 }
 
 

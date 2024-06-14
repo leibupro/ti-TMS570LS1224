@@ -12,7 +12,7 @@ export fn _start() void
 
 pub fn zig_main() void
 {
-    //const n: u32 = 700000;
+    const n: u32 = 700000;
 
     system.init();
     gio.init();
@@ -33,11 +33,11 @@ pub fn zig_main() void
         // time is available to implement / port the TI
         // HALCoGen generated C code.
         //
-        //for ( 0..n ) | _ |
-        //{
-        //}
-        //gio.toggle_bit( gio.gio_port_b, 1 );
-        //gio.toggle_bit( gio.gio_port_b, 2 );
+        for ( 0..n ) | _ |
+        {
+        }
+        gio.toggle_bit( gio.gio_port_b, 1 );
+        gio.toggle_bit( gio.gio_port_b, 2 );
     }
 }
 
