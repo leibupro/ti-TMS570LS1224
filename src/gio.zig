@@ -43,8 +43,8 @@ const GioPort = extern struct
 //     @ptrFromInt( 0xFFF7BC54 );
 //
 
-const gio_reg: *GioReg = @ptrFromInt( 0xFFF7BC00 );
-pub const gio_port_b: *GioPort = @ptrFromInt( 0xFFF7BC54 );
+const gio_reg: *volatile GioReg = @ptrFromInt( 0xFFF7BC00 );
+pub const gio_port_b: *volatile GioPort = @ptrFromInt( 0xFFF7BC54 );
 
 
 pub fn init() void
@@ -137,7 +137,7 @@ pub fn init() void
 }
 
 
-pub fn set_bit( port: *GioPort, bit: u32, value: u32 ) void
+pub fn set_bit( port: *volatile GioPort, bit: u32, value: u32 ) void
 {
     const actual_reg_value: u32 =
         ( @as( u32, 1 ) << @as( u5, @truncate( bit ) ) );
@@ -152,7 +152,7 @@ pub fn set_bit( port: *GioPort, bit: u32, value: u32 ) void
 }
 
 
-pub fn toggle_bit( port: *GioPort, bit: u32 ) void
+pub fn toggle_bit( port: *volatile GioPort, bit: u32 ) void
 {
     const bit_mask: u32 =
         ( @as( u32, 1 ) << @as( u5, @truncate( bit ) ) );
