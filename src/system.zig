@@ -209,11 +209,14 @@ const FSM_WR_ENA_HL: *volatile u32 = @ptrFromInt( 0xFFF87288 );
 const EEPROM_CONFIG_HL: *volatile u32 = @ptrFromInt( 0xFFF872B8 );
 
 
-pub fn init() void
+pub inline fn init() void
 {
     // efc_check omitted
     // mux_init omitted,
     //     -> GIOB 1 and GIOB 2 should be directly accessible.
+    enable_event_bus_export();
+    enable_ecc_err_resp();
+    enable_flash_ecc();
     erratum_cortexr4_57();
     erratum_cortexr4_66();
     setup_pll();
@@ -221,6 +224,9 @@ pub fn init() void
     setup_flash();
     trim_lpo();
     map_clocks();
+    cfg_ext_clk_pins();
+    init_memory( 0x1 );
+    enable_ram_ecc();
 }
 
 
@@ -267,6 +273,63 @@ fn erratum_cortexr4_66() void
         \\ orr r0, r0, #0x80
         \\ /* Write Auxiliary Control register */
         \\ mcr p15, #0, r0, c1, c0, #1
+    );
+}
+
+
+fn enable_event_bus_export() void
+{
+    asm volatile(
+        \\ mrc   p15, #0x00, r0,         c9, c12, #0x00
+        \\ orr   r0,  r0,    #0x10
+        \\ mcr   p15, #0x00, r0,         c9, c12, #0x00
+    );
+}
+
+
+fn enable_ecc_err_resp() void
+{
+    flash_w_reg.*.FEDACCTRL1 = 0x000A060A;
+}
+
+
+fn enable_flash_ecc() void
+{
+    asm volatile(
+        \\ mrc   p15, #0x00, r0,         c1, c0,  #0x01
+        \\ orr   r0,  r0,    #0x02000000
+        \\ dmb
+        \\ mcr   p15, #0x00, r0,         c1, c0,  #0x01
+    );
+}
+
+
+fn disable_flash_ecc() void
+{
+    asm volatile(
+        \\ mrc   p15, #0x00, r0,         c1, c0,  #0x01
+        \\ bic   r0,  r0,    #0x02000000
+        \\ mcr   p15, #0x00, r0,         c1, c0,  #0x01
+    );
+}
+
+
+fn enable_ram_ecc() void
+{
+    asm volatile(
+        \\ mrc   p15, #0x00, r0,         c1, c0,  #0x01
+        \\ orr   r0,  r0,    #0x0C000000
+        \\ mcr   p15, #0x00, r0,         c1, c0,  #0x01
+    );
+}
+
+
+fn disable_ram_ecc() void
+{
+    asm volatile(
+        \\ mrc   p15, #0x00, r0,         c1, c0,  #0x01
+        \\ bic   r0,  r0,    #0x0C000000
+        \\ mcr   p15, #0x00, r0,         c1, c0,  #0x01
     );
 }
 
@@ -392,8 +455,8 @@ fn trim_lpo() void
 fn setup_flash() void
 {
     //
-    // Setup flash read mode, address wait states
-    // and data wait states.
+    // Setup flash read mode (pipeline),
+    // address wait states and data wait states.
     //
     flash_w_reg.*.FRDCNTL = (   0x00000000
                               | ( 3 << 8 )
@@ -557,5 +620,32 @@ fn init_peripherals() void
     // Clock Control Register. Enable peripherals.
     //
     system_reg_1.*.CLKCNTL |= ( @as( u32, 1 ) << @as( u5, 8 ) );
+}
+
+
+fn cfg_ext_clk_pins() void
+{
+    // Set ECLK pins functional mode.
+    system_reg_1.*.SYSPC1 = 0;
+
+    // Set ECLK pins default output value.
+    system_reg_1.*.SYSPC4 = 0;
+
+    // Set ECLK pins output direction.
+    system_reg_1.*.SYSPC2 = 1;
+
+    // Set ECLK pins open drain enable.
+    system_reg_1.*.SYSPC7 = 0;
+
+    // Set ECLK pins pullup/pulldown enable.
+    system_reg_1.*.SYSPC8 = 0;
+
+    // Set ECLK pins pullup/pulldown select.
+    system_reg_1.*.SYSPC9 = 1;
+
+    // Setup ECLK.
+    system_reg_1.*.ECPCNTL = (   ( 0 << 24 )
+                               | ( 0 << 23 )
+                               | ( ( 8 - 1 ) & 0xFFFF ) );
 }
 

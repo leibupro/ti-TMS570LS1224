@@ -14,7 +14,7 @@ pub fn zig_main() void
 {
     const n: u32 = 700000;
 
-    system.init();
+    @call( .always_inline, system.init, .{} );
     gio.init();
 
     //
