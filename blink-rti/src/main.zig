@@ -2,6 +2,7 @@
 const std = @import( "std" );
 const system = @import( "system.zig" );
 const gio = @import( "gio.zig" );
+const vim = @import( "vim.zig" );
 
 
 export fn _start() void
@@ -16,6 +17,9 @@ pub fn zig_main() void
 
     @call( .always_inline, system.init, .{} );
     gio.init();
+    vim.init();
+    vim.channel_map( 2, 2, &foobar );
+
 
     //
     // Initial LED state ...
@@ -40,4 +44,11 @@ pub fn zig_main() void
         gio.toggle_bit( gio.gio_port_b, 2 );
     }
 }
+
+
+fn foobar() callconv( .C ) void
+{
+    return;
+}
+
 

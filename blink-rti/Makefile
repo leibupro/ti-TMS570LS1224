@@ -32,8 +32,9 @@ SRCASM := sys_intvecs.s \
 
 SRCZIG := main.zig
 
-AUX_SRCZIG := gio.zig \
-              system.zig
+AUX_SRCZIG := system.zig \
+              gio.zig \
+              vim.zig
 
 ZIG_ROOT_MODULE := $(SRCDIR)/$(word 1, $(SRCZIG))
 

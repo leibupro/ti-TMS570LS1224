@@ -227,6 +227,23 @@ pub inline fn init() void
     cfg_ext_clk_pins();
     init_memory( 0x1 );
     enable_ram_ecc();
+    enable_irq_vic_offset();
+}
+
+
+pub fn enable_interrupt() void
+{
+    asm volatile(
+        \\ cpsie if
+    );
+}
+
+
+pub fn disable_interrupt() void
+{
+    asm volatile(
+        \\ cpsid if
+    );
 }
 
 
@@ -330,6 +347,16 @@ fn disable_ram_ecc() void
         \\ mrc   p15, #0x00, r0,         c1, c0,  #0x01
         \\ bic   r0,  r0,    #0x0C000000
         \\ mcr   p15, #0x00, r0,         c1, c0,  #0x01
+    );
+}
+
+
+fn enable_irq_vic_offset() void
+{
+    asm volatile(
+        \\ mrc   p15, #0, r0,         c1, c0,  #0
+        \\ orr   r0,  r0,    #0x01000000
+        \\ mcr   p15, #0, r0,         c1, c0,  #0
     );
 }
 
