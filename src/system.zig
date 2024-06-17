@@ -234,7 +234,7 @@ pub inline fn init() void
 pub fn enable_interrupt() void
 {
     asm volatile(
-        \\ cpsie if
+        \\cpsie if
     );
 }
 
@@ -242,7 +242,7 @@ pub fn enable_interrupt() void
 pub fn disable_interrupt() void
 {
     asm volatile(
-        \\ cpsid if
+        \\cpsid if
     );
 }
 
@@ -259,12 +259,12 @@ pub fn disable_interrupt() void
 fn erratum_cortexr4_57() void
 {
     asm volatile(
-        \\ /* Read Secondary Auxiliary Control Register */
-        \\ mrc p15, #0, r0, c15, c0, #0
-        \\ /* Set BIT 16 (Set DOOFMACS) */
-        \\ orr r0, r0, #0x10000
-        \\ /* Write Secondary Auxiliary Control Register */
-        \\ mcr p15, #0, r0, c15, c0, #0
+        \\/* Read Secondary Auxiliary Control Register */
+        \\mrc p15, #0, r0, c15, c0, #0
+        \\/* Set BIT 16 (Set DOOFMACS) */
+        \\orr r0, r0, #0x10000
+        \\/* Write Secondary Auxiliary Control Register */
+        \\mcr p15, #0, r0, c15, c0, #0
     );
 }
 
@@ -281,15 +281,15 @@ fn erratum_cortexr4_57() void
 fn erratum_cortexr4_66() void
 {
     asm volatile(
-        \\ /* Read Auxiliary Control register */
-        \\ mrc p15, #0, r0, c1, c0, #1
-        \\ /*
-        \\  * Set BIT 7 (Disable out-of-order completion
-        \\  * for divide instructions.
-        \\  * */
-        \\ orr r0, r0, #0x80
-        \\ /* Write Auxiliary Control register */
-        \\ mcr p15, #0, r0, c1, c0, #1
+        \\/* Read Auxiliary Control register */
+        \\mrc p15, #0, r0, c1, c0, #1
+        \\/*
+        \\ * Set BIT 7 (Disable out-of-order completion
+        \\ * for divide instructions.
+        \\ * */
+        \\orr r0, r0, #0x80
+        \\/* Write Auxiliary Control register */
+        \\mcr p15, #0, r0, c1, c0, #1
     );
 }
 
@@ -297,9 +297,9 @@ fn erratum_cortexr4_66() void
 fn enable_event_bus_export() void
 {
     asm volatile(
-        \\ mrc   p15, #0x00, r0,         c9, c12, #0x00
-        \\ orr   r0,  r0,    #0x10
-        \\ mcr   p15, #0x00, r0,         c9, c12, #0x00
+        \\mrc   p15, #0x00, r0,         c9, c12, #0x00
+        \\orr   r0,  r0,    #0x10
+        \\mcr   p15, #0x00, r0,         c9, c12, #0x00
     );
 }
 
@@ -313,10 +313,10 @@ fn enable_ecc_err_resp() void
 fn enable_flash_ecc() void
 {
     asm volatile(
-        \\ mrc   p15, #0x00, r0,         c1, c0,  #0x01
-        \\ orr   r0,  r0,    #0x02000000
-        \\ dmb
-        \\ mcr   p15, #0x00, r0,         c1, c0,  #0x01
+        \\mrc   p15, #0x00, r0,         c1, c0,  #0x01
+        \\orr   r0,  r0,    #0x02000000
+        \\dmb
+        \\mcr   p15, #0x00, r0,         c1, c0,  #0x01
     );
 }
 
@@ -324,9 +324,9 @@ fn enable_flash_ecc() void
 fn disable_flash_ecc() void
 {
     asm volatile(
-        \\ mrc   p15, #0x00, r0,         c1, c0,  #0x01
-        \\ bic   r0,  r0,    #0x02000000
-        \\ mcr   p15, #0x00, r0,         c1, c0,  #0x01
+        \\mrc   p15, #0x00, r0,         c1, c0,  #0x01
+        \\bic   r0,  r0,    #0x02000000
+        \\mcr   p15, #0x00, r0,         c1, c0,  #0x01
     );
 }
 
@@ -334,9 +334,9 @@ fn disable_flash_ecc() void
 fn enable_ram_ecc() void
 {
     asm volatile(
-        \\ mrc   p15, #0x00, r0,         c1, c0,  #0x01
-        \\ orr   r0,  r0,    #0x0C000000
-        \\ mcr   p15, #0x00, r0,         c1, c0,  #0x01
+        \\mrc   p15, #0x00, r0,         c1, c0,  #0x01
+        \\orr   r0,  r0,    #0x0C000000
+        \\mcr   p15, #0x00, r0,         c1, c0,  #0x01
     );
 }
 
@@ -344,9 +344,9 @@ fn enable_ram_ecc() void
 fn disable_ram_ecc() void
 {
     asm volatile(
-        \\ mrc   p15, #0x00, r0,         c1, c0,  #0x01
-        \\ bic   r0,  r0,    #0x0C000000
-        \\ mcr   p15, #0x00, r0,         c1, c0,  #0x01
+        \\mrc   p15, #0x00, r0,         c1, c0,  #0x01
+        \\bic   r0,  r0,    #0x0C000000
+        \\mcr   p15, #0x00, r0,         c1, c0,  #0x01
     );
 }
 
@@ -354,9 +354,9 @@ fn disable_ram_ecc() void
 fn enable_irq_vic_offset() void
 {
     asm volatile(
-        \\ mrc   p15, #0, r0,         c1, c0,  #0
-        \\ orr   r0,  r0,    #0x01000000
-        \\ mcr   p15, #0, r0,         c1, c0,  #0
+        \\mrc   p15, #0, r0,         c1, c0,  #0
+        \\orr   r0,  r0,    #0x01000000
+        \\mcr   p15, #0, r0,         c1, c0,  #0
     );
 }
 

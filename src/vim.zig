@@ -1,7 +1,26 @@
 
+pub const isr_prologue = (
+    \\push     {r0, r1, r2, r3, r12, lr}
+    \\vmrs     r12, fpexc
+    \\stmdb    sp!, {r12}
+    \\vmrs     r12, fpscr
+    \\stmdb    sp!, {r12}
+    \\vpush    {d0, d1, d2, d3, d4, d5, d6, d7}
+);
+
+pub const isr_epilogue = (
+    \\vpop    {d0, d1, d2, d3, d4, d5, d6, d7}
+    \\ldm     sp!, {r12}
+    \\vmsr    fpscr, r12
+    \\ldm     sp!, {r12}
+    \\vmsr    fpexc, r12
+    \\pop     {r0, r1, r2, r3, r12, lr}
+    \\subs    pc, lr, #4
+);
+
 const num_vim_channels: u8 = 128;
 
-const isr_fn_ptr = *const fn () callconv( .C ) void;
+const isr_fn_ptr = *const fn () callconv( .Naked ) void;
 
 const VimRam = extern struct
 {
@@ -519,23 +538,26 @@ pub fn channel_map( request: u32,
 }
 
 
-fn phantom_interrupt() callconv( .C ) void
+export fn phantom_interrupt() callconv( .Naked ) void
 {
+    asm volatile( isr_prologue );
     while( true ){}
-    return;
+    asm volatile( isr_epilogue );
 }
 
 
-fn phantom_esm_high_interrupt() callconv( .C ) void
+fn phantom_esm_high_interrupt() callconv( .Naked ) void
 {
+    asm volatile( isr_prologue );
     while( true ){}
-    return;
+    asm volatile( isr_epilogue );
 }
 
 
-fn phantom_vim_par_err_handler() callconv( .C ) void
+fn phantom_vim_par_err_handler() callconv( .Naked ) void
 {
+    asm volatile( isr_prologue );
     while( true ){}
-    return;
+    asm volatile( isr_epilogue );
 }
 

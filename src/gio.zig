@@ -152,7 +152,8 @@ pub fn set_bit( port: *volatile GioPort, bit: u32, value: u32 ) void
 }
 
 
-pub fn toggle_bit( port: *volatile GioPort, bit: u32 ) void
+pub fn toggle_bit( port: *volatile GioPort,
+                   bit: u32 ) callconv( .C ) void
 {
     const bit_mask: u32 =
         ( @as( u32, 1 ) << @as( u5, @truncate( bit ) ) );

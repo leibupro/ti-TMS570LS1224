@@ -3,6 +3,7 @@ const std = @import( "std" );
 const system = @import( "system.zig" );
 const gio = @import( "gio.zig" );
 const vim = @import( "vim.zig" );
+const rti = @import( "rti.zig" );
 
 
 export fn _start() void
@@ -11,15 +12,22 @@ export fn _start() void
 }
 
 
+export fn _dabort() void
+{
+    while( true ){}
+}
+
+
 pub fn zig_main() void
 {
-    const n: u32 = 700000;
-
     @call( .always_inline, system.init, .{} );
     gio.init();
     vim.init();
     vim.channel_map( 2, 2, &foobar );
-
+    rti.init();
+    rti.enable_notification( rti.notification_compare_0 );
+    system.enable_interrupt();
+    rti.start_counter( rti.counter_block_1 );
 
     //
     // Initial LED state ...
@@ -27,28 +35,18 @@ pub fn zig_main() void
     gio.set_bit( gio.gio_port_b, 1, 1 );
     gio.set_bit( gio.gio_port_b, 2, 0 );
 
-    while( true )
-    {
-        //
-        // Cheapest possible variant here. Just delaying
-        // through artificially burning the CPU for a while.
-        // An interrupt, triggered through, e.g. a
-        // compare register / timer, should be used when
-        // time is available to implement / port the TI
-        // HALCoGen generated C code.
-        //
-        for ( 0..n ) | _ |
-        {
-        }
-        gio.toggle_bit( gio.gio_port_b, 1 );
-        gio.toggle_bit( gio.gio_port_b, 2 );
-    }
+    while( true ){ }
 }
 
 
-fn foobar() callconv( .C ) void
+fn foobar() callconv( .Naked ) void
 {
-    return;
-}
+    asm volatile( vim.isr_prologue );
 
+    @call( .always_inline, rti.set_interrupt_flag, .{ 1 } );
+    @call( .always_inline, gio.toggle_bit, .{ gio.gio_port_b, 1 } );
+    @call( .always_inline, gio.toggle_bit, .{ gio.gio_port_b, 2 } );
+
+    asm volatile( vim.isr_epilogue );
+}
 
