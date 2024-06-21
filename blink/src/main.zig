@@ -14,7 +14,7 @@ pub fn zig_main() void
 {
     const n: u32 = 700000;
 
-    system.init();
+    @call( .always_inline, system.init, .{} );
     gio.init();
 
     //
@@ -39,5 +39,22 @@ pub fn zig_main() void
         gio.toggle_bit( gio.gio_port_b, 1 );
         gio.toggle_bit( gio.gio_port_b, 2 );
     }
+}
+
+
+//
+// Just to keep the linker happy, because of the
+// external references to phantom_interrupt and _dabort
+// in sys_intvecs.s
+//
+export fn phantom_interrupt() callconv( .Naked ) void
+{
+    while( true ){}
+}
+
+
+export fn _dabort() void
+{
+    while( true ){}
 }
 
