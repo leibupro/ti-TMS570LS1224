@@ -2,7 +2,7 @@
 SHELL := /usr/bin/env bash
 
 # ZIGROOT :=
-ZIGROOT := /opt/zig-dev/zig-linux-x86_64-0.13.0-dev.386+3964b2a31/
+ZIGROOT := /opt/zig-dev/zig-linux-x86_64-0.14.0-dev.591+1c35e73b6/
 
 ZCC := $(ZIGROOT)zig cc
 ZBE := $(ZIGROOT)zig build-exe
